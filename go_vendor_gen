@@ -142,7 +142,7 @@ if [[ ! $BUILD_DEV == 1 ]]; then
   exit 0
 fi
 
-git add vendor/
+git add --all
 git commit -m "update vendoring data with go version $gomod_go_ver"
 git push origin :$GIT_TAG_NAME
 git tag --delete $GIT_TAG_NAME
