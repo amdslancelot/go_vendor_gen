@@ -3,7 +3,7 @@
 DEBUG=0
 GIT_TAG_NAME=go_vendor_gen_tool-test
 GO_COMMAND=$(which go)
-#GOMOD_PATH=$1
+GOMOD_PATH=go.mod
 BUILD_DEV=0
 
 
@@ -111,12 +111,12 @@ done
 check_command_exist $GO_COMMAND
 
 # tests
-debug $(compare_go_ver $GOMOD_PATH)
-sys_go_ver=$(get_sys_go_ver)
-debug "go ver: $sys_go_ver"
+debug "[Debug] go command vs go.mod version compatibility: $(compare_go_ver $GOMOD_PATH)"
 gomod_go_ver=$(get_gomod_go_ver $GOMOD_PATH)
-debug "go mod: $gomod_go_ver"
-debug "go ver(short): ${sys_go_ver:0:${#gomod_go_ver}}"
+debug "[Debug] go.mod ver: $gomod_go_ver"
+sys_go_ver=$(get_sys_go_ver)
+debug "[Debug] go command ver: $sys_go_ver"
+debug "[Debug] go ver(short): ${sys_go_ver:0:${#gomod_go_ver}}"
 
 # validation
 if ! $(compare_go_ver $GOMOD_PATH); then 

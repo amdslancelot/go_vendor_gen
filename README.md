@@ -1,5 +1,15 @@
 # go_vendor_gen
 
+## Usage
+
+1. Go to the project main folder
+2. Run the command. ex:
+```sh
+   (path_to)/go_vendor_gen -m go.mod -c ~/golang-1.17.1/go/bin/go -d
+```
+
+## Help
+
 Golang project vendor data generator tool
 
 Intro:
