@@ -5,7 +5,7 @@
 1. Go to the project main folder
 2. Run the command. ex:
 ```sh
-   (path_to)/go_vendor_gen -m go.mod -c ~/golang-1.17.1/go/bin/go -d -b
+   (path_to)/go_vendor_gen -m go.mod -c ~/golang-1.17.1/go/bin/go -d -b -n ol7/rclone-1.56.2-1.0.1-lanstest -nc --dry-run
 ```
 
 ## Help
@@ -27,4 +27,6 @@ Available options:
         -d, --debug                  Enable debug log
         -n, --tagname                Customize git tag name to commit
         -b, --dev                    Commit to git and trigger autobuild
+        -nc, --no-version-check      Skip version match check
         -h, --help                   Print this help and exit
+
