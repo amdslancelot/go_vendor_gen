@@ -162,8 +162,11 @@ if [[ ! $BUILD_DEV == 1 ]]; then
   exit 0
 fi
 
+FINAL_GO_VER=$($GO_COMMAND version)
+COMMIT_MSG="update vendoring data with $FINAL_GO_VER"
+debug "commit msg: $COMMIT_MSG"
 git add --all
-git commit -m "update vendoring data with go version $gomod_go_ver"
+git commit -m "$COMMIT_MSG"
 git push origin :$GIT_TAG_NAME
 git tag --delete $GIT_TAG_NAME
 git tag -a $GIT_TAG_NAME -m "build-dev"
