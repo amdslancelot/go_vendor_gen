@@ -1,5 +1,9 @@
 # go_vendor_gen
 
+This is a tool I built to specifically fix the golang vendor data common issues. It's been a while we have build issues for rclone, packer and other golang based projects. I'm collecting answers to the issues we were facing and trying to solve them at once by creating this tool.
+
+Sometimes we don't have the latest golang version so I added this feature to assign the golang executable location. Also you can customize the test git tag name.
+
 ## Install and Run
 
 1. Checkout this git repo
