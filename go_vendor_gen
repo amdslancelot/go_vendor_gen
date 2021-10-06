@@ -27,12 +27,12 @@ Usage:
 
 Available options:
 
-        -m, --gomod-path GOMOD_PATH  Specify go.mod file location
         -c, --go-exec-path           Specify go command location
-        -d, --debug                  Enable debug log
         -n, --tagname                Customize git tag name to commit
         -b, --dev                    Commit to git and trigger autobuild
         -nc, --no-version-check      Skip version match check
+        -m, --gomod-path GOMOD_PATH  Specify go.mod file location
+        -d, --debug                  Enable debug log
         -h, --help                   Print this help and exit
 EOF
   exit
