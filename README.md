@@ -6,6 +6,7 @@
 2. Go to the project main folder (that need to generate vendor data with)
 3. (optional) Download the latest golang binaries if needed
 4. Run the command. ex:
+
 (easy)
 ```sh
    (path_to)/go_vendor_gen -d -b -c ~/golang-1.17.1/go/bin/go -n ol7/rclone-1.56.2-1.0.1-lanstest --dry-run
