@@ -17,7 +17,7 @@ Intro:
 
 Usage: 
 
-	go_vendor_gen <tag> ([arguments]
+	go_vendor_gen <tag> [arguments]
 
 
 Available options:

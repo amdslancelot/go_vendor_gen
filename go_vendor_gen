@@ -22,7 +22,7 @@ Intro:
 
 Usage: 
 
-	go_vendor_gen <tag> ([arguments]
+	go_vendor_gen <tag> [arguments]
 
 
 Available options:
@@ -132,6 +132,10 @@ debug "[Debug] go ver(short): ${sys_go_ver:0:${#gomod_go_ver}}"
 debug "[Debug] CHECK_VERSION_MATCH is $CHECK_VERSION_MATCH"
 if [[ $CHECK_VERSION_MATCH -eq 1 ]] && ! $(compare_go_ver $GOMOD_PATH); then 
   echo "[ERROR] System go version ($(get_sys_go_ver)) VS Project go.mod go version ($(get_gomod_go_ver $GOMOD_PATH)) not compatible. Vendor data may generated with errors. Cannot proceed."
+  echo "[Hint] You may consider:"
+  echo "1. Upgrade to latest golang version."
+  echo "2. Use -c to assign newer version golang executable location."
+  echo "then try again with argument -nc (no check version match)."
   exit 1
 fi
 
@@ -154,7 +158,7 @@ http_proxy=http://www-proxy.us.oracle.com:80 https_proxy=http://www-proxy.us.ora
 # Commit to GIT and trigger autobuild
 #####################################
 if [[ ! $BUILD_DEV == 1 ]]; then
-  echo "Vendor data generated. Program stopped."
+  echo "[INFO] Vendor data generated. Program stopped."
   exit 0
 fi
 
