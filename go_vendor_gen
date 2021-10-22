@@ -5,6 +5,7 @@ GIT_TAG_NAME=go_vendor_gen_tool-test
 GO_COMMAND=$(which go)
 GOMOD_PATH=go.mod
 BUILD_DEV=0
+NO_TRIGGER=0
 CHECK_VERSION_MATCH=1 #default is checking go version match
 DRY_RUN=0
 
@@ -27,13 +28,18 @@ Usage:
 
 Available options:
 
+        -nc, --no-version-check      Skip version match check
         -c, --go-exec-path           Specify go command location
         -n, --tagname                Customize git tag name to commit
         -b, --dev                    Commit to git and trigger autobuild
-        -nc, --no-version-check      Skip version match check
-        -m, --gomod-path GOMOD_PATH  Specify go.mod file location
+
+        --dry-run                    Program stops right after generated vendor data, before git add
+        -nb, --no-trigger            Program stops right after git added vendor data, before git commit
+                                     *** This will always overwrite -b option ***
+
         -d, --debug                  Enable debug log
         -h, --help                   Print this help and exit
+        -m, --gomod-path GOMOD_PATH  Specify go.mod file location
 EOF
   exit
 }
@@ -103,6 +109,11 @@ while [[ $# -gt 0 ]]; do
       DRY_RUN=1
       shift # past argument
       ;;
+    -nb|--no-trigger)
+      BUILD_DEV=1
+      NO_TRIGGER=1
+      shift # past argument
+      ;;
     -h|--help)
       usage
       shift
@@ -165,10 +176,16 @@ fi
 FINAL_GO_VER=$($GO_COMMAND version)
 COMMIT_MSG="update vendoring data with $FINAL_GO_VER"
 debug "commit msg: $COMMIT_MSG"
-git add --all
-git commit -m "$COMMIT_MSG"
 git push origin :$GIT_TAG_NAME
 git tag --delete $GIT_TAG_NAME
+git add --all
+if [[ $NO_TRIGGER == 1 ]]; then
+  echo "[INFO] Project is commit ready, but haven't commited anything. Program stopped."
+  echo "[INFO] See git status:"
+  git status
+  exit 0
+fi
+git commit -m "$COMMIT_MSG"
 git tag -a $GIT_TAG_NAME -m "build-dev"
 git push origin $GIT_TAG_NAME
 
