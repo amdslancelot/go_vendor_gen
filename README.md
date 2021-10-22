@@ -14,23 +14,23 @@ Sometimes we don't have the latest golang version so I added this feature to ass
 
 ## Examples
 
-### Easy
+Easy
 ```sh
    (path_to)/go_vendor_gen -d -b --dry-run
 ```
 
-### Assign Go Exec + Custom Git Tag Name + No Go Version Check + Dry Run + Debug Mode
+Assign Go Exec + Custom Git Tag Name + No Go Version Check + Dry Run + Debug Mode
 ```sh
    (path_to)/go_vendor_gen -c ~/golang-1.17.1/go/bin/go -n ol7/packer-1.7.7-1.0.1-lanstest -nc --dry-run -d
 ```
 
 
-### Assign Go Exec + Custom Git Tag Name + No Go Version Check + Dry Run + Debug Mode + Trigger Dev Build
+Assign Go Exec + Custom Git Tag Name + No Go Version Check + Dry Run + Debug Mode + Trigger Dev Build
 ```sh
    (path_to)/go_vendor_gen -c ~/golang-1.17.1/go/bin/go -n ol7/rclone-1.56.2-1.0.1-lanstest -nc --dry-run -d -b
 ```
 
-### Assign Go Exec + Custom Git Tag Name + No Go Version Check + Debug Mode + Don't trigger Dev Build
+Assign Go Exec + Custom Git Tag Name + No Go Version Check + Debug Mode + Don't trigger Dev Build
 ```sh
    (path_to)/go_vendor_gen -c ~/golang-1.17.1/go/bin/go -n ol7/packer-1.7.7-1.0.1-lanstest -nc -d -nb
 ```
