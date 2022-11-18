@@ -1,0 +1,197 @@
+#!/bin/bash
+
+DEBUG=0
+GIT_TAG_NAME=go_vendor_gen_tool-test
+GO_COMMAND=$(which go)
+GOMOD_PATH=go.mod
+BUILD_DEV=0
+NO_TRIGGER=0
+CHECK_VERSION_MATCH=1 #default is checking go version match
+DRY_RUN=0
+
+function debug {
+  if [[ $DEBUG == 1 ]]
+  then
+    echo -e $1
+  fi
+}
+
+function usage() {
+  cat <<EOF
+Intro:
+        go_vendor_gen is a Go Vendor Data Generator Tool.
+
+Usage: 
+
+	go_vendor_gen <tag> [arguments]
+
+
+Available options:
+
+        -nc, --no-version-check      Skip version match check
+        -c, --go-exec-path           Specify go command location
+        -n, --tagname                Customize git tag name to commit
+        -b, --dev                    Commit to git and trigger autobuild
+
+        --dry-run                    Program stops right after generated vendor data, before git add
+        -nb, --no-trigger            Program stops right after git added vendor data, before git commit
+                                     *** This will always overwrite -b option ***
+
+        -d, --debug                  Enable debug log
+        -h, --help                   Print this help and exit
+        -m, --gomod-path GOMOD_PATH  Specify go.mod file location
+EOF
+  exit
+}
+
+function check_command_exist {
+  if ! command -v $1 &> /dev/null; then
+    echo "$1 could not be found"
+    exit 1
+  fi
+}
+
+function get_gomod_go_ver {
+  # For go.mod > 1.17 
+  while IFS= read -r ll; do
+    if [[ $ll =~ ^go\ .* ]]
+    then
+      echo $ll | sed s/go\ //
+    fi
+  done < <(cat $GOMOD_PATH)
+}
+
+function get_sys_go_ver {
+  check_command_exist $GO_COMMAND
+  echo $(go_ver=$($GO_COMMAND version); go_ver_arr=($go_ver); echo ${go_ver_arr[2]} | sed s/go//)
+}
+
+function compare_go_ver {
+  gomod_go_ver=$(get_gomod_go_ver $1)
+  sys_go_ver=$(get_sys_go_ver)
+  sys_go_ver=${sys_go_ver:0:${#gomod_go_ver}}
+  [[ $gomod_go_ver == $sys_go_ver ]] && echo true || echo false
+}
+
+
+if [[ $# == 0 ]]; then
+  usage
+fi
+
+
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  key="$1"
+
+  case $key in
+    -m|--gomod-path)
+      GOMOD_PATH=$2
+      shift # past argument
+      shift # past value
+      ;;
+    -c|--go-exec-path)
+      GO_COMMAND=$2
+      shift # past argument
+      shift # past value
+      ;;
+    -d|--debug)
+      DEBUG=1
+      shift # past argument
+      ;;
+    -n|--tagname)
+      GIT_TAG_NAME=$2
+      shift # past argument
+      shift # past value
+      ;;
+    -b|--dev)
+      BUILD_DEV=1
+      shift # past argument
+      ;;
+    -nc|--no-version-check)
+      CHECK_VERSION_MATCH=0
+      shift # past argument
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift # past argument
+      ;;
+    -nb|--no-trigger)
+      BUILD_DEV=1
+      NO_TRIGGER=1
+      shift # past argument
+      ;;
+    -h|--help)
+      usage
+      shift
+      ;;
+    *)    # unknown option
+      POSITIONAL+=("$1") # save it in an array for later
+      shift # past argument
+  esac
+done
+
+
+
+
+
+# validation
+check_command_exist $GO_COMMAND
+
+# tests
+debug "[Debug] go command vs go.mod version compatibility: $(compare_go_ver $GOMOD_PATH)"
+gomod_go_ver=$(get_gomod_go_ver $GOMOD_PATH)
+debug "[Debug] go.mod ver: $gomod_go_ver"
+sys_go_ver=$(get_sys_go_ver)
+debug "[Debug] go command ver: $sys_go_ver"
+debug "[Debug] go ver(short): ${sys_go_ver:0:${#gomod_go_ver}}"
+
+# validation
+debug "[Debug] CHECK_VERSION_MATCH is $CHECK_VERSION_MATCH"
+if [[ $CHECK_VERSION_MATCH -eq 1 ]] && ! $(compare_go_ver $GOMOD_PATH); then 
+  echo "[ERROR] System go version ($(get_sys_go_ver)) VS Project go.mod go version ($(get_gomod_go_ver $GOMOD_PATH)) not compatible. Vendor data may generated with errors. Cannot proceed."
+  echo "[Hint] You may consider:"
+  echo "1. Upgrade to latest golang version."
+  echo "2. Use -c to assign newer version golang executable location."
+  echo "then try again with argument -nc (no check version match)."
+  exit 1
+fi
+
+if [[ $DRY_RUN -eq 1 ]]; then
+  echo "[SUCCESS] This is a dry run."
+  exit 0
+fi
+
+# Allow vendoring dirs to push into git repo
+if [[ -r ./.gitignore ]]; then
+  sed -i s@\^vendor\/@\^\#vendor\/@ ./.gitignore
+  sed -i s@\^cache@\^\#cache@ ./.gitignore
+fi
+
+# Generate vendor data
+rm -rf vendor/
+http_proxy=http://www-proxy.us.oracle.com:80 https_proxy=http://www-proxy.us.oracle.com:80 $GO_COMMAND mod vendor -v
+
+#####################################
+# Commit to GIT and trigger autobuild
+#####################################
+if [[ ! $BUILD_DEV == 1 ]]; then
+  echo "[INFO] Vendor data generated. Program stopped."
+  exit 0
+fi
+
+FINAL_GO_VER=$($GO_COMMAND version)
+COMMIT_MSG="update vendoring data with $FINAL_GO_VER"
+debug "commit msg: $COMMIT_MSG"
+git push origin :$GIT_TAG_NAME
+git tag --delete $GIT_TAG_NAME
+git add --all
+if [[ $NO_TRIGGER == 1 ]]; then
+  echo "[INFO] Project is commit ready, but haven't commited anything. Program stopped."
+  echo "[INFO] See git status:"
+  git status
+  exit 0
+fi
+git commit -m "$COMMIT_MSG"
+git tag -a $GIT_TAG_NAME -m "build-dev"
+git push origin $GIT_TAG_NAME
+
