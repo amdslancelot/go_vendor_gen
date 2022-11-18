@@ -52,7 +52,13 @@ function check_command_exist {
 }
 
 function get_gomod_go_ver {
-  echo $(tail -1 $1 | sed s/go// | sed "s/\s//")
+  # For go.mod > 1.17 
+  while IFS= read -r ll; do
+    if [[ $ll =~ ^go\ .* ]]
+    then
+      echo $ll | sed s/go\ //
+    fi
+  done < <(cat $GOMOD_PATH)
 }
 
 function get_sys_go_ver {
