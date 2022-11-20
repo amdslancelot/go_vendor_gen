@@ -46,7 +46,14 @@ EOF
 
 function check_command_exist {
   if ! command -v $1 &> /dev/null; then
-    echo "$1 could not be found"
+    echo "[Error] $1 could not be found"
+    exit 1
+  fi
+}
+
+function check_gomod_exist {
+  if [ ! -f $GOMOD_PATH ]; then
+    echo "[Error] go.mod file doesn't exist"
     exit 1
   fi
 }
@@ -136,6 +143,7 @@ done
 
 # validation
 check_command_exist $GO_COMMAND
+check_gomod_exist
 
 # tests
 debug "[Debug] go command vs go.mod version compatibility: $(compare_go_ver $GOMOD_PATH)"
@@ -146,7 +154,7 @@ debug "[Debug] go command ver: $sys_go_ver"
 debug "[Debug] go ver(short): ${sys_go_ver:0:${#gomod_go_ver}}"
 
 # validation
-debug "[Debug] CHECK_VERSION_MATCH is $CHECK_VERSION_MATCH"
+debug "[Debug] CHECK_VERSION_MATCH is $CHECK_VERSION_MATCH. Program is going to check golang version before make moves."
 if [[ $CHECK_VERSION_MATCH -eq 1 ]] && ! $(compare_go_ver $GOMOD_PATH); then 
   echo "[ERROR] System go version ($(get_sys_go_ver)) VS Project go.mod go version ($(get_gomod_go_ver $GOMOD_PATH)) not compatible. Vendor data may generated with errors. Cannot proceed."
   echo "[Hint] You may consider:"
@@ -163,8 +171,7 @@ fi
 
 # Allow vendoring dirs to push into git repo
 if [[ -r ./.gitignore ]]; then
-  sed -i s@\^vendor\/@\^\#vendor\/@ ./.gitignore
-  sed -i s@\^cache@\^\#cache@ ./.gitignore
+  git mv ./.gitignore ./gitignore.backup
 fi
 
 # Generate vendor data
@@ -184,7 +191,7 @@ COMMIT_MSG="update vendoring data with $FINAL_GO_VER"
 debug "commit msg: $COMMIT_MSG"
 git push origin :$GIT_TAG_NAME
 git tag --delete $GIT_TAG_NAME
-git add --all
+git add go.mod vendor/
 if [[ $NO_TRIGGER == 1 ]]; then
   echo "[INFO] Project is commit ready, but haven't commited anything. Program stopped."
   echo "[INFO] See git status:"
